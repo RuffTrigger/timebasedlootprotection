@@ -21,7 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.event.block.Action;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 public class Main extends JavaPlugin implements Listener {
@@ -36,7 +36,7 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
 
         // Load protected items from database and schedule protection removal
-        List<ItemData> protectedItems = databaseHandler.getProtectedItems();
+        Collection<ItemData> protectedItems = databaseHandler.getProtectedItems();
         for (ItemData itemData : protectedItems) {
             if (itemData.getExpirationTime() > System.currentTimeMillis()) {
                 Location location = new Location(Bukkit.getWorld(itemData.getWorldUUID()), itemData.getDropLocationX(), itemData.getDropLocationY(), itemData.getDropLocationZ());
@@ -128,7 +128,8 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
-        for (Entity entity : event.getEntity().getNearbyEntities(10, 10, 10)) {
+        Collection<Entity> nearbyEntities = event.getLocation().getWorld().getNearbyEntities(event.getLocation(), 10, 10, 10);
+        for (Entity entity : nearbyEntities) {
             if (entity instanceof Item) {
                 Item item = (Item) entity;
                 UUID itemUUID = item.getUniqueId();
@@ -143,7 +144,19 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockIgnite(BlockIgniteEvent event) {
-        // Add any additional logic if needed
+        Location location = event.getBlock().getLocation();
+        Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, 10, 10, 10);
+        for (Entity entity : nearbyEntities) {
+            if (entity instanceof Item) {
+                Item item = (Item) entity;
+                UUID itemUUID = item.getUniqueId();
+                Long expirationTime = databaseHandler.getExpirationTime(itemUUID);
+                if (expirationTime != null && expirationTime > System.currentTimeMillis()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -152,7 +165,19 @@ public class Main extends JavaPlugin implements Listener {
         if (event.getClickedBlock() != null && (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getAction().equals(Action.LEFT_CLICK_BLOCK))) {
             Material material = event.getClickedBlock().getType();
             if (material == Material.TNT || material == Material.FIRE || material == Material.LAVA) {
-                // Add logic to handle block interaction protection if needed
+                Location location = event.getClickedBlock().getLocation();
+                Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, 10, 10, 10);
+                for (Entity entity : nearbyEntities) {
+                    if (entity instanceof Item) {
+                        Item item = (Item) entity;
+                        UUID itemUUID = item.getUniqueId();
+                        Long expirationTime = databaseHandler.getExpirationTime(itemUUID);
+                        if (expirationTime != null && expirationTime > System.currentTimeMillis()) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
