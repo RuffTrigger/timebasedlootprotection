@@ -21,14 +21,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class Main extends JavaPlugin implements Listener {
+    private static Main instance;
+    private Logger logger;
 
     private DatabaseHandler databaseHandler;
     private int protectionTimeMinutes;
 
     @Override
     public void onEnable() {
+        instance = this;
+        logger = getLogger();
         this.databaseHandler = new DatabaseHandler();
         loadConfig();
         getServer().getPluginManager().registerEvents(this, this);
@@ -194,5 +199,8 @@ public class Main extends JavaPlugin implements Listener {
                 databaseHandler.removeItemProtection(itemUUID);
             }
         }.runTaskLater(this, delay);
+    }
+    public static Main getInstance() {
+        return instance;
     }
 }
