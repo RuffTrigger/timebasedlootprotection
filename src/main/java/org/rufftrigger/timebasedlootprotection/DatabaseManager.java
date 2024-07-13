@@ -27,7 +27,6 @@ public class DatabaseManager {
 
             connection = DriverManager.getConnection(url);
             createTableIfNotExists();
-            startProtectionCheckTask(); // Call this internally within setupDatabase()
         } catch (SQLException e) {
             e.printStackTrace();
         }
