@@ -2,20 +2,16 @@ package org.rufftrigger.timebasedlootprotection;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-
 public class Main extends JavaPlugin {
 
     private static Main instance;
-    private DatabaseHandler databaseHandler;
 
     @Override
     public void onEnable() {
         instance = this;
-        databaseHandler = new DatabaseHandler();
 
-        // Ensure the database is initialized
-        DatabaseManager.createDatabase();
+        // Initialize database
+        DatabaseManager.setupDatabase();
 
         // Register events
         getServer().getPluginManager().registerEvents(new EventListener(), this);
@@ -25,6 +21,9 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Ensure database connection is closed on shutdown
+        DatabaseManager.closeConnection();
+
         getLogger().info("TimeBasedLootProtection has been disabled.");
     }
 
