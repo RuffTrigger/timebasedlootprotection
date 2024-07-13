@@ -1,2 +1,2 @@
 # Plugin configuration
-protection_time_minutes: 5
+protection_time_seconds: 15 # Default is 15 seconds

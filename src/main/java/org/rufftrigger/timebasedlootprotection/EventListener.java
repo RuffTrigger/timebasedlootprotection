@@ -14,7 +14,6 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class EventListener implements Listener {
 
@@ -24,8 +23,8 @@ public class EventListener implements Listener {
         if (item != null && item.hasItemMeta()) {
             UUID ownerUUID = event.getPlayer().getUniqueId();
             String itemId = item.getType().name(); // Use item type as the identifier
-            long protectionDurationMillis = getProtectionDurationMillis(); // Get protection duration from config
-            DatabaseManager.protectItem(ownerUUID, itemId, protectionDurationMillis);
+
+            DatabaseManager.protectItem(ownerUUID, itemId, getProtectionDurationMillis());
         }
     }
 
@@ -105,7 +104,7 @@ public class EventListener implements Listener {
 
     private long getProtectionDurationMillis() {
         FileConfiguration config = Main.getInstance().getConfig();
-        int protectionTimeMinutes = config.getInt("protection_time_minutes", 5); // Default to 5 minutes if not found
-        return protectionTimeMinutes * 60 * 1000; // Convert minutes to milliseconds
+        int protectionTimeSeconds = config.getInt("protection_time_seconds", 300); // Default to 300 seconds (5 minutes)
+        return protectionTimeSeconds * 1000; // Convert seconds to milliseconds
     }
 }
