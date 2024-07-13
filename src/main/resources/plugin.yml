@@ -2,5 +2,5 @@ name: timebasedlootprotection
 version: '${project.version}'
 main: org.rufftrigger.timebasedlootprotection.Main
 description: Plugin protects loot from been picked up by other players.
-api-version: 1.16
+api-version: '1.16'
 author: RuffTrigger
