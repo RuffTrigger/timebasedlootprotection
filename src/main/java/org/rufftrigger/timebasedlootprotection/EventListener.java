@@ -1,5 +1,6 @@
 package org.rufftrigger.timebasedlootprotection;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,7 +23,7 @@ public class EventListener implements Listener {
         if (item != null && item.hasItemMeta()) {
             UUID ownerUUID = event.getPlayer().getUniqueId();
             String itemId = item.getType().name(); // Use item type as the identifier
-            long protectionDurationMillis = 60000; // Example: 1 minute protection
+            long protectionDurationMillis = getProtectionDurationMillis(); // Get protection duration from config
             DatabaseManager.protectItem(ownerUUID, itemId, protectionDurationMillis);
         }
     }
@@ -99,5 +100,11 @@ public class EventListener implements Listener {
                 event.getPlayer().sendMessage("You cannot pick up this protected item.");
             }
         }
+    }
+
+    private long getProtectionDurationMillis() {
+        FileConfiguration config = Main.getInstance().getConfig();
+        int protectionTimeMinutes = config.getInt("protection_time_minutes", 5); // Default to 5 minutes if not found
+        return protectionTimeMinutes * 60 * 1000; // Convert minutes to milliseconds
     }
 }

@@ -15,6 +15,9 @@ public class Main extends JavaPlugin {
         // Setup the database
         DatabaseManager.setupDatabase();
 
+        // Save default config if not exists
+        saveDefaultConfig();
+        
         // Register events
         getServer().getPluginManager().registerEvents(new EventListener(), this);
 
