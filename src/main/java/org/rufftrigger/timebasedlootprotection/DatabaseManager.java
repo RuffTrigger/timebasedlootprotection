@@ -11,25 +11,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class DatabaseManager {
 
     private static Connection connection;
 
-    public static void setupDatabase() {
-        try {
-            File dataFolder = new File(Main.getInstance().getDataFolder(), "protected_items.db");
-            if (!dataFolder.exists()) {
-                dataFolder.getParentFile().mkdirs();
-                Main.getInstance().saveResource("protected_items.db", false);
-            }
-            String url = "jdbc:sqlite:" + dataFolder.getPath();
-
-            connection = DriverManager.getConnection(url);
-            createTableIfNotExists();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public static void setupDatabase() throws SQLException {
+        File dataFolder = new File(Main.getInstance().getDataFolder(), "protected_items.db");
+        if (!dataFolder.exists()) {
+            dataFolder.getParentFile().mkdirs();
+            Main.getInstance().saveResource("protected_items.db", false);
         }
+        String url = "jdbc:sqlite:" + dataFolder.getPath();
+
+        connection = DriverManager.getConnection(url);
+        createTableIfNotExists();
     }
 
     private static void createTableIfNotExists() {
@@ -43,7 +40,7 @@ public class DatabaseManager {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error creating table", e);
         }
     }
 
@@ -57,7 +54,7 @@ public class DatabaseManager {
             pstmt.setLong(3, expirationTime);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error protecting item", e);
         }
     }
 
@@ -75,7 +72,7 @@ public class DatabaseManager {
                 return count > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error checking protection status", e);
         }
         return false;
     }
@@ -87,7 +84,7 @@ public class DatabaseManager {
             pstmt.setString(1, itemId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error removing protection", e);
         }
     }
 
@@ -107,7 +104,7 @@ public class DatabaseManager {
                         removeProtection(itemId);
                     }
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    Main.getInstance().getLogger().log(Level.SEVERE, "Error running protection check task", e);
                 }
             }
         }.runTaskTimerAsynchronously(Main.getInstance(), 20L, 20L * 60L * 5L); // Run every 5 minutes
@@ -115,11 +112,11 @@ public class DatabaseManager {
 
     public static void closeConnection() {
         try {
-            if (connection != null) {
+            if (connection != null && !connection.isClosed()) {
                 connection.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error closing database connection", e);
         }
     }
 }

@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class EventListener implements Listener {
 

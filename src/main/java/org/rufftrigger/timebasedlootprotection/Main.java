@@ -2,22 +2,28 @@ package org.rufftrigger.timebasedlootprotection;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.logging.Level;
+
 public class Main extends JavaPlugin {
 
     private static Main instance;
-    private DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
         instance = this;
-        databaseManager = new DatabaseManager();
 
-        // Setup the database
-        DatabaseManager.setupDatabase();
+        // Initialize database
+        try {
+            DatabaseManager.setupDatabase();
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Error setting up database", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // Save default config if not exists
         saveDefaultConfig();
-        
+
         // Register events
         getServer().getPluginManager().registerEvents(new EventListener(), this);
 
@@ -29,12 +35,15 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Stop protection check task
-        // (Note: This is not strictly necessary as Bukkit automatically stops tasks on server shutdown)
-        // Bukkit.getScheduler().cancelTasks(this);
+        try {
+            // Stop protection check task
+            // (Note: This is not strictly necessary as Bukkit automatically stops tasks on server shutdown)
 
-        // Close database connection
-        DatabaseManager.closeConnection();
+            // Close database connection
+            DatabaseManager.closeConnection();
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Error disabling plugin", e);
+        }
 
         getLogger().info("TimeBasedLootProtection has been disabled.");
     }
