@@ -1,5 +1,8 @@
 package org.rufftrigger.timebasedlootprotection;
 
+import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -24,6 +27,7 @@ public class DatabaseManager {
 
             connection = DriverManager.getConnection(url);
             createTableIfNotExists();
+            startProtectionCheckTask(); // Call this internally within setupDatabase()
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -86,6 +90,28 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void startProtectionCheckTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                long currentTimeMillis = System.currentTimeMillis();
+                String sql = "SELECT item_id FROM protected_items WHERE protection_expiration < ?;";
+
+                try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                    pstmt.setLong(1, currentTimeMillis);
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        String itemId = rs.getString("item_id");
+                        removeProtection(itemId);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.runTaskTimerAsynchronously(Main.getInstance(), 20L, 20L * 60L * 5L); // Run every 5 minutes
     }
 
     public static void closeConnection() {
