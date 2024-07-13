@@ -9,7 +9,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
@@ -88,6 +90,31 @@ public class EventListener implements Listener {
                     event.setCancelled(true);
                     break; // No need to continue checking if one protected item is affected
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onItemSpawn(ItemSpawnEvent event) {
+        // Check if an item spawns and protect it if needed
+        ItemStack item = event.getEntity().getItemStack();
+        if (item != null && item.hasItemMeta()) {
+            // You may adjust the protection logic based on your plugin's requirements
+            event.setCancelled(true); // Prevent the item from spawning if it's protected
+        }
+    }
+
+    @EventHandler
+    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        // Check if a player picks up a protected item and cancel the event if needed
+        ItemStack item = event.getItem().getItemStack();
+        if (item != null && item.hasItemMeta()) {
+            UUID ownerUUID = event.getPlayer().getUniqueId();
+            String itemId = item.getType().name(); // Use item type as the identifier
+
+            if (DatabaseManager.isLocationProtected(ownerUUID, itemId)) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage("You cannot pick up this protected item.");
             }
         }
     }
